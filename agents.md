@@ -5,7 +5,7 @@ This project focuses on research and experimentation with Large Language Models 
 
 ## Environment
 - **OS**: Linux
-- **Python**: Running in a virtual environment (`.venv`).
+- **Python**: Running in a virtual environment (`.venv`). YOU MUST RUN COMMANDS FROM THE VIRTUAL ENVIRONMENT.
 - **Hardware Acceleration**: AMD ROCm is used. Note the environment variable `HSA_OVERRIDE_GFX_VERSION="10.3.0"` is often required for Navi 22 GPUs (RX 6700 XT).
 - **Libraries**: `transformers`, `torch`, `accelerate`.
 
