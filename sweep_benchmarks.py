@@ -43,21 +43,23 @@ MODELS = [
 WINDOWS = list(range(5, 105, 5))
 INPUT_FILE = "source_text/short_story.txt"
 
+
 def run_sweep():
     python_exec = ".venv/bin/python3"
     env = os.environ.copy()
     env["PYTORCH_HIP_ALLOC_CONF"] = "expandable_segments:True"
-    
+
     total_runs = len(MODELS) * len(WINDOWS)
     current_run = 0
-    
+
     for model in MODELS:
         for window in WINDOWS:
             current_run += 1
-            print(f"[{current_run}/{total_runs}] Testing {model['name']} with window size {window}...")
-            
-            output_file = f"results/sweep_{model['name'].replace(' ', '_').replace('.', '')}_w{window}.llmzip"
-            
+            print(
+                f"[{current_run}/{total_runs}] Testing {model['name']} with window size {window}...")
+
+            output_file = f"encoded_documents/sweep_{model['name'].replace(' ', '_').replace('.', '')}_w{window}.llmzip"
+
             cmd = [
                 python_exec, "-u", "encode_story.py",
                 "--model", model["path"],
@@ -65,13 +67,15 @@ def run_sweep():
                 "--output", output_file,
                 "--window-size", str(window)
             ] + model["args"]
-            
+
             try:
                 subprocess.run(cmd, env=env, check=True)
             except subprocess.CalledProcessError as e:
-                print(f"Error running {model['name']} with window {window}: {e}")
+                print(
+                    f"Error running {model['name']} with window {window}: {e}")
                 # Continue with next combination
                 continue
+
 
 if __name__ == "__main__":
     run_sweep()

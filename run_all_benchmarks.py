@@ -111,7 +111,8 @@ def run_texts(args):
     total = len(MODELS) * len(txt_files)
     current = 0
 
-    print(f"=== Text Benchmark: {len(MODELS)} models x {len(txt_files)} texts, window={window} ===")
+    print(
+        f"=== Text Benchmark: {len(MODELS)} models x {len(txt_files)} texts, window={window} ===")
     print(f"Texts: {txt_files}\n")
 
     for model in MODELS:
@@ -120,9 +121,10 @@ def run_texts(args):
             input_path = os.path.join(SOURCE_DIR, txt_file)
             basename = os.path.splitext(txt_file)[0]
             slug = make_slug(model["name"])
-            output = f"results/{slug}_{basename}_w{window}.llmzip"
+            output = f"encoded_documents/{slug}_{basename}_w{window}.llmzip"
 
-            print(f"[{current}/{total}] {model['name']} | {txt_file} | window {window}")
+            print(
+                f"[{current}/{total}] {model['name']} | {txt_file} | window {window}")
             try:
                 run_encode(model, input_path, output, window, env)
             except subprocess.CalledProcessError as e:
@@ -141,14 +143,15 @@ def run_sweep(args):
     total = len(MODELS) * len(windows)
     current = 0
 
-    print(f"=== Window Sweep: {len(MODELS)} models x {len(windows)} windows on {input_file} ===")
+    print(
+        f"=== Window Sweep: {len(MODELS)} models x {len(windows)} windows on {input_file} ===")
     print(f"Windows: {windows}\n")
 
     for model in MODELS:
         for window in windows:
             current += 1
             slug = make_slug(model["name"])
-            output = f"results/sweep_{slug}_w{window}.llmzip"
+            output = f"encoded_documents/sweep_{slug}_w{window}.llmzip"
 
             print(f"[{current}/{total}] {model['name']} | window {window}")
             try:
@@ -165,15 +168,22 @@ def main():
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # texts: all models x all texts at fixed window
-    texts_parser = subparsers.add_parser("texts", help="Run all models against each text file")
-    texts_parser.add_argument("--window", type=int, default=100, help="Context window size (default: 100)")
+    texts_parser = subparsers.add_parser(
+        "texts", help="Run all models against each text file")
+    texts_parser.add_argument(
+        "--window", type=int, default=100, help="Context window size (default: 100)")
 
     # sweep: all models x window range on one text
-    sweep_parser = subparsers.add_parser("sweep", help="Sweep window sizes for all models on one text")
-    sweep_parser.add_argument("--input", type=str, default="source_text/short_story.txt", help="Input text file")
-    sweep_parser.add_argument("--start", type=int, default=5, help="Start window size (default: 5)")
-    sweep_parser.add_argument("--end", type=int, default=100, help="End window size (default: 100)")
-    sweep_parser.add_argument("--step", type=int, default=5, help="Window step (default: 5)")
+    sweep_parser = subparsers.add_parser(
+        "sweep", help="Sweep window sizes for all models on one text")
+    sweep_parser.add_argument(
+        "--input", type=str, default="source_text/short_story.txt", help="Input text file")
+    sweep_parser.add_argument(
+        "--start", type=int, default=5, help="Start window size (default: 5)")
+    sweep_parser.add_argument(
+        "--end", type=int, default=100, help="End window size (default: 100)")
+    sweep_parser.add_argument(
+        "--step", type=int, default=5, help="Window step (default: 5)")
 
     args = parser.parse_args()
 

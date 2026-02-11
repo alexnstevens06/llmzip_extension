@@ -159,10 +159,12 @@ def main():
     current = 0
 
     print(f"{'='*70}")
-    print(f"DATA SOURCES SWEEP: {len(MODELS)} models x {len(source_files)} texts, window={WINDOW}")
+    print(
+        f"DATA SOURCES SWEEP: {len(MODELS)} models x {len(source_files)} texts, window={WINDOW}")
     print(f"{'='*70}")
     print(f"Models: {', '.join(m['name'] for m in MODELS)}")
-    print(f"Categories: {', '.join(sorted(set(f['category'] for f in source_files)))}")
+    print(
+        f"Categories: {', '.join(sorted(set(f['category'] for f in source_files)))}")
     print(f"Total runs: {total}")
     print(f"{'='*70}\n")
 
@@ -177,14 +179,16 @@ def main():
             # Skip if already done
             if is_already_done(model["path"], src["path"], WINDOW):
                 skip_count += 1
-                print(f"  [{current}/{total}] SKIP (exists) | {src['category']}/{src['title'][:30]}")
+                print(
+                    f"  [{current}/{total}] SKIP (exists) | {src['category']}/{src['title'][:30]}")
                 continue
 
             slug = make_slug(model["name"])
             src_slug = os.path.splitext(os.path.basename(src["path"]))[0]
-            output = f"results/{slug}_{src_slug}_w{WINDOW}.llmzip"
+            output = f"encoded_documents/{slug}_{src_slug}_w{WINDOW}.llmzip"
 
-            print(f"  [{current}/{total}] {src['category']} | {src['title'][:35]} ({src['chars']} chars)")
+            print(
+                f"  [{current}/{total}] {src['category']} | {src['title'][:35]} ({src['chars']} chars)")
             sys.stdout.flush()
 
             try:
@@ -246,7 +250,8 @@ def main():
 
         if rows:
             print(f"\n{'─'*70}")
-            print(f"{'Model':<20} {'Runs':>5} {'Avg BPC':>10} {'Min BPC':>10} {'Max BPC':>10}")
+            print(
+                f"{'Model':<20} {'Runs':>5} {'Avg BPC':>10} {'Min BPC':>10} {'Max BPC':>10}")
             print(f"{'─'*70}")
             for name, runs, avg, mn, mx in rows:
                 print(f"{name:<20} {runs:>5} {avg:>10.4f} {mn:>10.4f} {mx:>10.4f}")
