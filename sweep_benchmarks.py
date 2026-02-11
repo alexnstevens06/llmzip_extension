@@ -19,6 +19,11 @@ MODELS = [
         "args": ["--bf16"]
     },
     {
+        "name": "Gemma 3-4B",
+        "path": "/home/alexn/.cache/huggingface/hub/models--google--gemma-3-4b-pt/snapshots/cc012e0a6d0787b4adcc0fa2c4da74402494554d",
+        "args": ["--bf16"]
+    },
+    {
         "name": "Qwen 3-1.7B",
         "path": "/home/alexn/.cache/huggingface/hub/models--Qwen--Qwen3-1.7B/snapshots/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
         "args": []

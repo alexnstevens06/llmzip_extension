@@ -1,0 +1,164 @@
+.. currentmodule:: asyncio
+
+
+====================
+Coroutines and Tasks
+====================
+
+This section outlines high-level asyncio APIs to work with coroutines
+and Tasks.
+
+.. contents::
+   :depth: 1
+   :local:
+
+
+.. _coroutine:
+
+Coroutines
+==========
+
+**Source code:** :source:`Lib/asyncio/coroutines.py`
+
+----------------------------------------------------
+
+:term:`Coroutines <coroutine>` declared with the async/await syntax is the
+preferred way of writing asyncio applications.  For example, the following
+snippet of code prints "hello", waits 1 second,
+and then prints "world"::
+
+    >>> import asyncio
+
+    >>> async def main():
+    ...     print('hello')
+    ...     await asyncio.sleep(1)
+    ...     print('world')
+
+    >>> asyncio.run(main())
+    hello
+    world
+
+Note that simply calling a coroutine will not schedule it to
+be executed::
+
+    >>> main()
+    <coroutine object main at 0x1053bb7c8>
+
+To actually run a coroutine, asyncio provides the following mechanisms:
+
+* The :func:`asyncio.run` function to run the top-level
+  entry point "main()" function (see the above example.)
+
+* Awaiting on a coroutine.  The following snippet of code will
+  print "hello" after waiting for 1 second, and then print "world"
+  after waiting for *another* 2 seconds::
+
+      import asyncio
+      import time
+
+      async def say_after(delay, what):
+          await asyncio.sleep(delay)
+          print(what)
+
+      async def main():
+          print(f"started at {time.strftime('%X')}")
+
+          await say_after(1, 'hello')
+          await say_after(2, 'world')
+
+          print(f"finished at {time.strftime('%X')}")
+
+      asyncio.run(main())
+
+  Expected output::
+
+      started at 17:13:52
+      hello
+      world
+      finished at 17:13:55
+
+* The :func:`asyncio.create_task` function to run coroutines
+  concurrently as asyncio :class:`Tasks <Task>`.
+
+  Let's modify the above example and run two ``say_after`` coroutines
+  *concurrently*::
+
+      async def main():
+          task1 = asyncio.create_task(
+              say_after(1, 'hello'))
+
+          task2 = asyncio.create_task(
+              say_after(2, 'world'))
+
+          print(f"started at {time.strftime('%X')}")
+
+          # Wait until both tasks are completed (should take
+          # around 2 seconds.)
+          await task1
+          await task2
+
+          print(f"finished at {time.strftime('%X')}")
+
+  Note that expected output now shows that the snippet runs
+  1 second faster than before::
+
+      started at 17:14:32
+      hello
+      world
+      finished at 17:14:34
+
+* The :class:`asyncio.TaskGroup` class provides a more modern
+  alternative to :func:`create_task`.
+  Using this API, the last example becomes::
+
+      async def main():
+          async with asyncio.TaskGroup() as tg:
+              task1 = tg.create_task(
+                  say_after(1, 'hello'))
+
+              task2 = tg.create_task(
+                  say_after(2, 'world'))
+
+              print(f"started at {time.strftime('%X')}")
+
+          # The await is implicit when the context manager exits.
+
+          print(f"finished at {time.strftime('%X')}")
+
+  The timing and output should be the same as for the previous version.
+
+  .. versionadded:: 3.11
+     :class:`asyncio.TaskGroup`.
+
+
+.. _asyncio-awaitables:
+
+Awaitables
+==========
+
+We say that an object is an **awaitable** object if it can be used
+in an :keyword:`await` expression.  Many asyncio APIs are designed to
+accept awaitables.
+
+There are three main types of *awaitable* objects:
+**coroutines**, **Tasks**, and **Futures**.
+
+
+.. rubric:: Coroutines
+
+Python coroutines are *awaitables* and therefore can be awaited from
+other coroutines::
+
+    import asyncio
+
+    async def nested():
+        return 42
+
+    async def main():
+        # Nothing happens if we just call "nested()".
+        # A coroutine object is created but not awaited,
+        # so it *won't run at all*.
+        nested()  # will raise a "RuntimeWarning".
+
+        # Let's do it differently now and await it:
+        print(a

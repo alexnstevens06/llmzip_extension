@@ -1,0 +1,118 @@
+:mod:`!sqlite3` --- DB-API 2.0 interface for SQLite databases
+=============================================================
+
+.. module:: sqlite3
+   :synopsis: A DB-API 2.0 implementation using SQLite 3.x.
+
+.. sectionauthor:: Gerhard Häring <gh@ghaering.de>
+
+**Source code:** :source:`Lib/sqlite3/`
+
+.. Make sure we always doctest the tutorial with an empty database.
+
+.. testsetup::
+
+   import sqlite3
+   src = sqlite3.connect(":memory:", isolation_level=None)
+   dst = sqlite3.connect("tutorial.db", isolation_level=None)
+   src.backup(dst)
+   src.close()
+   dst.close()
+   del src, dst
+
+.. _sqlite3-intro:
+
+SQLite is a C library that provides a lightweight disk-based database that
+doesn't require a separate server process and allows accessing the database
+using a nonstandard variant of the SQL query language. Some applications can use
+SQLite for internal data storage.  It's also possible to prototype an
+application using SQLite and then port the code to a larger database such as
+PostgreSQL or Oracle.
+
+The :mod:`!sqlite3` module was written by Gerhard Häring.  It provides an SQL interface
+compliant with the DB-API 2.0 specification described by :pep:`249`, and
+requires the third-party `SQLite <https://sqlite.org/>`_ library.
+
+.. include:: ../includes/optional-module.rst
+
+This document includes four main sections:
+
+* :ref:`sqlite3-tutorial` teaches how to use the :mod:`!sqlite3` module.
+* :ref:`sqlite3-reference` describes the classes and functions this module
+  defines.
+* :ref:`sqlite3-howtos` details how to handle specific tasks.
+* :ref:`sqlite3-explanation` provides in-depth background on
+  transaction control.
+
+.. seealso::
+
+   https://www.sqlite.org
+      The SQLite web page; the documentation describes the syntax and the
+      available data types for the supported SQL dialect.
+
+   https://www.w3schools.com/sql/
+      Tutorial, reference and examples for learning SQL syntax.
+
+   :pep:`249` - Database API Specification 2.0
+      PEP written by Marc-André Lemburg.
+
+
+.. We use the following practises for SQL code:
+   - UPPERCASE for keywords
+   - snake_case for schema
+   - single quotes for string literals
+   - singular for table names
+   - if needed, use double quotes for table and column names
+
+.. _sqlite3-tutorial:
+
+Tutorial
+--------
+
+In this tutorial, you will create a database of Monty Python movies
+using basic :mod:`!sqlite3` functionality.
+It assumes a fundamental understanding of database concepts,
+including `cursors`_ and `transactions`_.
+
+First, we need to create a new database and open
+a database connection to allow :mod:`!sqlite3` to work with it.
+Call :func:`sqlite3.connect` to create a connection to
+the database :file:`tutorial.db` in the current working directory,
+implicitly creating it if it does not exist:
+
+.. testcode::
+
+   import sqlite3
+   con = sqlite3.connect("tutorial.db")
+
+The returned :class:`Connection` object ``con``
+represents the connection to the on-disk database.
+
+In order to execute SQL statements and fetch results from SQL queries,
+we will need to use a database cursor.
+Call :meth:`con.cursor() <Connection.cursor>` to create the :class:`Cursor`:
+
+.. testcode::
+
+   cur = con.cursor()
+
+Now that we've got a database connection and a cursor,
+we can create a database table ``movie`` with columns for title,
+release year, and review score.
+For simplicity, we can just use column names in the table declaration --
+thanks to the `flexible typing`_ feature of SQLite,
+specifying the data types is optional.
+Execute the ``CREATE TABLE`` statement
+by calling :meth:`cur.execute(...) <Cursor.execute>`:
+
+.. testcode::
+
+   cur.execute("CREATE TABLE movie(title, year, score)")
+
+.. Ideally, we'd use sqlite_schema instead of sqlite_master below,
+   but SQLite versions older than 3.33.0 do not recognise that variant.
+
+We can verify that the new table has been created by querying
+the ``sqlite_master`` table built-in to SQLite,
+which should now contain an entry for the ``movie`` table definition
+(see `The Schema Table`_ for

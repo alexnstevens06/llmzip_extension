@@ -1,0 +1,9 @@
+RESTful API design follows a set of architectural principles that promote scalability, simplicity, and interoperability between distributed systems. REST, which stands for Representational State Transfer, was introduced by Roy Fielding in his doctoral dissertation in 2000 and has since become the dominant paradigm for web service development.
+
+The fundamental concept in REST is the resource. Every piece of data or functionality exposed by an API is modeled as a resource, identified by a unique URI. Resources are manipulated through a standard set of HTTP methods: GET retrieves a resource's current state, POST creates a new resource, PUT replaces an existing resource entirely, PATCH applies partial modifications, and DELETE removes a resource.
+
+Effective URI design follows consistent naming conventions. Resources should be represented as nouns rather than verbs. Collection endpoints use plural forms, such as /users or /articles, while individual resources are accessed by appending an identifier, such as /users/42. Nested resources express relationships, so /users/42/orders retrieves orders belonging to user 42.
+
+HTTP status codes communicate the outcome of each request. Successful operations return codes in the 200 range: 200 for successful retrieval, 201 for successful creation, and 204 for successful deletion with no content returned. Client errors use the 400 range: 400 for malformed requests, 401 for authentication failures, 403 for authorization failures, and 404 for missing resources. Server errors use the 500 range.
+
+Pagination, filtering, and sorting are essential for endpoints that return collections. Query parameters provide a clean mechanism: /users?page=2&limit=25&sort=name&order=asc. The response should include metadata about total count, current page, and links to adjacent pages, following patterns like HATEOAS or JSON API.

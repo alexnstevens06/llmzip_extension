@@ -60,8 +60,7 @@ def main():
     print(f"Compressing {input_file} to {output_file}...")
     start_time = time.time()
     
-    # Use encode_with_eos to allow proper decoding termination
-    llmzip.encode_with_eos(text, output_file)
+    llmzip.encode(text, output_file)
     
     end_time = time.time()
     print(f"Compression finished in {end_time - start_time:.2f} seconds.")
@@ -85,17 +84,11 @@ def main():
     compression_ratio = original_size / compressed_size if compressed_size > 0 else 0
     bpc = (compressed_size * 8) / original_size if original_size > 0 else 0
     
-    # Extract model name slightly more robustly
+    # Extract model name from path
     if model_path.endswith("/"):
         model_path = model_path[:-1]
     model_name = os.path.basename(model_path)
-    
-    # If model path is a hugginface snapshot, it might be the hash. 
-    # Let's try to get a better name if possible, or just log what we have.
-    # The user provided paths like .../models--Qwen--Qwen2.5-3B/snapshots/...
-    # A simple tactic is to look for "models--" in the path.
     if "models--" in model_path:
-        # e.g. /.../models--Qwen--Qwen2.5-3B/snapshots/...
         try:
             parts = model_path.split("/")
             for part in parts:
