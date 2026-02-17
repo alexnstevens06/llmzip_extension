@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 
-RESULTS_FILE = "self_compression_results.json"
-OUTPUT_DIR = "results"
+RESULTS_FILE = "data/self_compression_results.json"
+OUTPUT_DIR = "results/natural_language_entropy"
 
 # Colour palette matching plot_data_sources.py
 MODEL_COLORS = {
@@ -38,22 +38,26 @@ MODEL_COLORS = {
 SELF_MAP = {
     "llama32_3b": "Llama 3.2-3B",
     "gemma3_4b":  "Gemma 3-4B",
+    "qwen25_3b":  "Qwen 2.5-3B",
 }
 
 GENERATOR_LABELS = {
     "llama32_3b": "Llama 3.2-3B-Instruct",
     "gemma3_4b":  "Gemma 3-4B-IT",
+    "qwen25_3b":  "Qwen 2.5-3B-Instruct",
 }
 
 GENERATOR_COLORS = {
     "llama32_3b": "#8b5cf6",
     "gemma3_4b":  "#06b6d4",
+    "qwen25_3b":  "#6366f1",
 }
 
 
 def load_results():
     if not os.path.exists(RESULTS_FILE):
-        print(f"ERROR: {RESULTS_FILE} not found. Run run_self_compression.py first.")
+        print(
+            f"ERROR: {RESULTS_FILE} not found. Run run_self_compression.py first.")
         sys.exit(1)
     with open(RESULTS_FILE, "r") as f:
         data = json.load(f)
@@ -213,12 +217,13 @@ def plot_heatmap(data):
         fi = files.index(os.path.basename(r["source_file"]))
         matrix[ci, fi] = r["bpc"]
 
-    fig, ax = plt.subplots(figsize=(max(14, len(files) * 1.2), max(6, len(compressors) * 0.8)))
+    fig, ax = plt.subplots(
+        figsize=(max(14, len(files) * 1.2), max(6, len(compressors) * 0.8)))
     im = ax.imshow(matrix, aspect="auto", cmap="RdYlGn_r")
     fig.colorbar(im, ax=ax, shrink=0.7, label="BPC")
 
     ax.set_xticks(range(len(files)))
-    ax.set_xticklabels([f.replace("generated_", "").replace(".py.txt", "")
+    ax.set_xticklabels([f.replace("generated_", "").replace(".py.txt", "").replace(".txt", "")
                         for f in files],
                        rotation=45, ha="right", fontsize=8)
     ax.set_yticks(range(len(compressors)))
@@ -320,7 +325,8 @@ def plot_self_affinity_table(data, grouped):
     """Table showing self vs other BPC and the delta for each generator."""
     slugs = sorted(grouped.keys())
 
-    col_labels = ["Generator", "Self Model", "Self BPC", "Other Avg BPC", "Delta", "Self Wins?"]
+    col_labels = ["Generator", "Self Model", "Self BPC",
+                  "Other Avg BPC", "Delta", "Self Wins?"]
     rows = []
 
     for slug in slugs:
@@ -407,7 +413,8 @@ def plot_per_file_comparison(data, grouped):
             continue
 
         compressors = sorted(set(r["compressor_model"] for r in slug_data))
-        files = sorted(set(os.path.basename(r["source_file"]) for r in slug_data))
+        files = sorted(set(os.path.basename(
+            r["source_file"]) for r in slug_data))
         n_files = len(files)
         n_comp = len(compressors)
         bar_w = 0.85 / max(n_comp, 1)
@@ -436,7 +443,7 @@ def plot_per_file_comparison(data, grouped):
                     b.set_linewidth(2.5)
                     b.set_hatch("//")
 
-        short_labels = [f.replace("generated_", "").replace(".py.txt", "")
+        short_labels = [f.replace("generated_", "").replace(".py.txt", "").replace(".txt", "")
                         for f in files]
         ax.set_xticks(x + bar_w * (n_comp - 1) / 2)
         ax.set_xticklabels(short_labels, fontsize=9, rotation=30, ha="right")
@@ -492,7 +499,8 @@ def main():
             self_avg = np.mean(self_bpcs)
             other_avg = np.mean(other_bpcs) if other_bpcs else 0
             delta = self_avg - other_avg
-            print(f"{gen_label:<25} {self_name:<15} {self_avg:>10.4f} {other_avg:>10.4f} {delta:>+10.4f}")
+            print(
+                f"{gen_label:<25} {self_name:<15} {self_avg:>10.4f} {other_avg:>10.4f} {delta:>+10.4f}")
 
     print(f"\nPlots saved to {OUTPUT_DIR}/self_compression_*.png")
 

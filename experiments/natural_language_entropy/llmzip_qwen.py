@@ -3,11 +3,15 @@ import numpy as np
 import os
 import sys
 
+# Add core to path so we can import AC
+sys.path.append(os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), "../../core"))
+
 try:
     from AC import arithmeticcoding
 except ImportError:
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from AC import arithmeticcoding
+    # Fallback/Safety in case path adding didn't work as expected
+    from core.AC import arithmeticcoding
 
 
 class LLMzipQwen:
@@ -22,7 +26,8 @@ class LLMzipQwen:
         config = self.model.config
         if hasattr(config, 'text_config'):
             config = config.text_config
-        self.max_pos_len = int(getattr(config, 'max_position_embeddings', 32768) * 0.95)
+        self.max_pos_len = int(
+            getattr(config, 'max_position_embeddings', 32768) * 0.95)
 
     def _resolve_vocab_size(self):
         """Get vocab_size from config, handling multimodal models (e.g. Gemma 3) where it's nested."""
@@ -34,7 +39,8 @@ class LLMzipQwen:
         # Fallback: infer from the model's lm_head output dimension
         if hasattr(self.model, 'lm_head'):
             return self.model.lm_head.out_features
-        raise ValueError("Cannot determine vocab_size from model config or architecture")
+        raise ValueError(
+            "Cannot determine vocab_size from model config or architecture")
 
     def _get_free_vram(self):
         """Return free VRAM in bytes, or inf for non-CUDA devices."""
@@ -64,7 +70,8 @@ class LLMzipQwen:
                 use_cache=True,
             )
             logits = outputs.logits[:, -1, :]
-            probs = torch.softmax(logits, dim=-1).cpu().to(torch.float32).numpy()[0]
+            probs = torch.softmax(
+                logits, dim=-1).cpu().to(torch.float32).numpy()[0]
 
         # Sanitize
         if np.isnan(probs).any() or np.isinf(probs).any():
@@ -97,7 +104,8 @@ class LLMzipQwen:
 
     def encode(self, text, output_file):
         """Tokenize text, append EOS, and arithmetic-encode to output_file."""
-        input_ids = self.tokenizer.encode(text, return_tensors='pt').to(self.device)[0]
+        input_ids = self.tokenizer.encode(
+            text, return_tensors='pt').to(self.device)[0]
         eos = torch.tensor([self.tokenizer.eos_token_id], device=self.device)
         tokens = torch.cat([input_ids, eos])
         num_tokens = len(tokens)
@@ -139,7 +147,8 @@ class LLMzipQwen:
                 enc.write(cumul, tokens[i].item())
 
                 if i % 10 == 0:
-                    print(f"Encoded {i}/{num_tokens} tokens (cache: {cache_len})", end='\r')
+                    print(
+                        f"Encoded {i}/{num_tokens} tokens (cache: {cache_len})", end='\r')
                     sys.stdout.flush()
 
             enc.finish()
@@ -184,12 +193,14 @@ class LLMzipQwen:
             if past_kv is None:
                 # Full forward on the last max_window tokens, rebuilding cache
                 start = max(0, len(decoded_tokens) - self.max_window)
-                context = torch.tensor([decoded_tokens[start:]], device=self.device)
+                context = torch.tensor(
+                    [decoded_tokens[start:]], device=self.device)
                 probs, past_kv = self._get_probs(context)
                 cache_len = len(decoded_tokens) - start
             else:
                 # Incremental: feed only the latest token using cached KV
-                last_token = torch.tensor([[decoded_tokens[-1]]], device=self.device)
+                last_token = torch.tensor(
+                    [[decoded_tokens[-1]]], device=self.device)
                 probs, past_kv = self._get_probs(last_token, past_kv)
                 cache_len += 1
 
@@ -206,7 +217,8 @@ class LLMzipQwen:
                 break
 
             if len(decoded_tokens) % 10 == 0:
-                print(f"Decoded {len(decoded_tokens)} tokens (cache: {cache_len})", end='\r')
+                print(
+                    f"Decoded {len(decoded_tokens)} tokens (cache: {cache_len})", end='\r')
 
         bitin.close()
         file_in.close()

@@ -1,3 +1,4 @@
+from llmzip_qwen import LLMzipQwen
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import os
@@ -6,7 +7,10 @@ import sys
 # Override for Navi 22 (RX 6700 XT) support on ROCm
 os.environ["HSA_OVERRIDE_GFX_VERSION"] = "10.3.0"
 
-from llmzip_qwen import LLMzipQwen
+# Add experiments to path so we can import llmzip_qwen
+sys.path.append(os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), "../experiments"))
+
 
 MODELS = [
     {"name": "Qwen 2.5-3B", "path": "/home/alexn/.cache/huggingface/hub/models--Qwen--Qwen2.5-3B/snapshots/3aab1f1954e9cc14eb9509a215f9e5ca08227a9b"},
@@ -19,49 +23,54 @@ MODELS = [
 DEVICE = 'cuda'
 TEST_TEXT = "This is a test sentence that will be repeated many times to create a large context. " * 50
 
+
 def test_vram_safety():
     print("Starting VRAM Safety Tests...")
     print("Threshold: 0.5 GB headroom required.")
-    
+
     for model_info in MODELS:
         print(f"\n--- Testing Model: {model_info['name']} ---")
         try:
             # Clear before each model
             torch.cuda.empty_cache()
-            
+
             # Load model and tokenizer
             tokenizer = AutoTokenizer.from_pretrained(model_info['path'])
             # Use bfloat16 for Gemma to avoid instability, otherwise default
-            dtype = torch.bfloat16 if "gemma" in model_info['name'].lower() else torch.float16
-            
+            dtype = torch.bfloat16 if "gemma" in model_info['name'].lower(
+            ) else torch.float16
+
             print(f"Loading {model_info['name']} in {dtype}...")
             # Explicit device map for ROCm compatibility on single GPU
             model = AutoModelForCausalLM.from_pretrained(
                 model_info['path'],
                 torch_dtype=dtype,
-                device_map={"": "cuda:0"} # Explicitly map to GPU 0
+                device_map={"": "cuda:0"}  # Explicitly map to GPU 0
             )
-            
+
             # Initialize LLMzip with a large max_window to intentionally push VRAM
             # We want to see if the safety logic kicks in
-            llmzip = LLMzipQwen(model, tokenizer, device=DEVICE, max_window=2000)
-            
+            llmzip = LLMzipQwen(
+                model, tokenizer, device=DEVICE, max_window=2000)
+
             # Temporary output file
             temp_output = "temp_safety_test.llmzip"
-            
+
             print("Starting encoding (stress test)...")
             # We'll run a few steps to see if symptoms appear
             llmzip.encode(TEST_TEXT, temp_output)
-            
+
             # Check VRAM during/after
             free, total = torch.cuda.mem_get_info()
             print(f"Final VRAM Free: {free/1e9:.3f} GB / {total/1e9:.3f} GB")
-            
+
             if free < 0.5 * 1024**3:
-                print(f"FAILED: VRAM headroom below 0.5 GB for {model_info['name']}")
+                print(
+                    f"FAILED: VRAM headroom below 0.5 GB for {model_info['name']}")
             else:
-                print(f"PASSED: VRAM headroom maintained for {model_info['name']}")
-                
+                print(
+                    f"PASSED: VRAM headroom maintained for {model_info['name']}")
+
             # Cleanup - VERY IMPORTANT for ROCm
             del model
             del tokenizer
@@ -70,15 +79,16 @@ def test_vram_safety():
             import gc
             gc.collect()
             torch.cuda.synchronize()
-            
+
             if os.path.exists(temp_output):
                 os.remove(temp_output)
-                
+
         except Exception as e:
             print(f"ERROR testing {model_info['name']}: {e}")
             torch.cuda.empty_cache()
             import gc
             gc.collect()
+
 
 if __name__ == "__main__":
     test_vram_safety()

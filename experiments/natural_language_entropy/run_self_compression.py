@@ -5,7 +5,7 @@ Waits for instruct model downloads, generates code, compresses with all base
 models, and produces plots + tables.
 
 Usage:
-    .venv/bin/python3 run_self_compression.py
+    ../.venv/bin/python3 run_self_compression.py
 """
 
 import json
@@ -15,11 +15,18 @@ import subprocess
 import sys
 import time
 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../core"))
+
 os.environ["HSA_OVERRIDE_GFX_VERSION"] = "10.3.0"
 os.environ["PYTORCH_HIP_ALLOC_CONF"] = "expandable_segments:True"
 
-PYTHON = ".venv/bin/python3"
-PROJECT = os.path.dirname(os.path.abspath(__file__))
+experiment_dir = os.path.dirname(os.path.abspath(__file__))
+PROJECT = os.path.dirname(experiment_dir)  # Root of the repo
+PYTHON = os.path.join(PROJECT, ".venv/bin/python3")
+
+SOURCE_DIR = os.path.join(PROJECT, "data", "source_text")
+ENCODED_DIR = os.path.join(PROJECT, "data", "encoded_documents")
+RESULTS_FILE = os.path.join(PROJECT, "data", "self_compression_results.json")
 
 # Base models used for compression (same as run_all_benchmarks.py)
 BASE_MODELS = [
@@ -76,10 +83,16 @@ GENERATORS = [
         "self_base": "Gemma 3-4B",
         "bf16": True,
     },
+    {
+        "name": "Qwen 2.5-3B-Instruct",
+        "hf_id": "Qwen/Qwen2.5-3B-Instruct",
+        "slug": "qwen25_3b",
+        "self_base": "Qwen 2.5-3B",
+        "bf16": False,
+    },
 ]
 
 WINDOW = 50
-RESULTS_FILE = os.path.join(PROJECT, "self_compression_results.json")
 
 
 def get_env():
@@ -124,7 +137,8 @@ def clean_gpu():
 def find_model_snapshot(hf_id):
     """Return the local snapshot path for a HuggingFace model, or None."""
     slug = hf_id.replace("/", "--")
-    base = os.path.join(os.path.expanduser("~"), ".cache/huggingface/hub", f"models--{slug}")
+    base = os.path.join(os.path.expanduser(
+        "~"), ".cache/huggingface/hub", f"models--{slug}")
     snap_dir = os.path.join(base, "snapshots")
     if not os.path.isdir(snap_dir):
         return None
@@ -206,10 +220,12 @@ def download_model_in_tmux(hf_id, session="research"):
 def generate_code(model_path, slug, bf16=False):
     """Generate Python programs using an instruct model."""
     cmd = [
-        PYTHON, "-u", "generate_code.py",
+        PYTHON, "-u", os.path.join(experiment_dir, "generate_code.py"),
         "--model", model_path,
         "--slug", slug,
-        "--count", "5",
+        "--count", "8",
+        # Note: generate_code.py now defaults to writing to data/source_text
+        # because we will update it to default to the correct location or respect cwd
     ]
     if bf16:
         cmd.append("--bf16")
@@ -218,11 +234,10 @@ def generate_code(model_path, slug, bf16=False):
     subprocess.run(cmd, cwd=PROJECT, env=get_env(), check=True)
 
     # Find generated files
-    source_dir = os.path.join(PROJECT, "source_text")
     files = sorted([
-        os.path.join(source_dir, f)
-        for f in os.listdir(source_dir)
-        if f.startswith(f"generated_{slug}_") and f.endswith(".py.txt")
+        os.path.join(SOURCE_DIR, f)
+        for f in os.listdir(SOURCE_DIR)
+        if f.startswith(f"generated_{slug}_") and f.endswith(".txt")
     ])
     print(f"  Generated {len(files)} files")
     return files
@@ -232,7 +247,7 @@ def compress_file(model, input_path, output_file, env):
     """Compress a single file with a single base model."""
     clean_gpu()
     cmd = [
-        PYTHON, "-u", "encode_story.py",
+        PYTHON, "-u", "core/encode_story.py",
         "--model", model["path"],
         "--input", input_path,
         "--output", output_file,
@@ -259,12 +274,13 @@ def run_compression_benchmark(generated_files, generator_slug, generator_name):
             basename = os.path.splitext(os.path.basename(gen_file))[0]
             model_slug = make_slug(model["name"])
             output = os.path.join(
-                PROJECT, "encoded_documents",
+                ENCODED_DIR,
                 f"selfcomp_{model_slug}_{basename}_w{WINDOW}.llmzip",
             )
             os.makedirs(os.path.dirname(output), exist_ok=True)
 
-            print(f"[{current}/{total}] {model['name']} | {os.path.basename(gen_file)}")
+            print(
+                f"[{current}/{total}] {model['name']} | {os.path.basename(gen_file)}")
 
             try:
                 compress_file(model, gen_file, output, env)
@@ -274,7 +290,8 @@ def run_compression_benchmark(generated_files, generator_slug, generator_name):
                     text = f.read()
                 original_size = len(text)
                 compressed_size = os.path.getsize(output)
-                bpc = (compressed_size * 8) / original_size if original_size > 0 else 0
+                bpc = (compressed_size * 8) / \
+                    original_size if original_size > 0 else 0
                 compression_ratio = original_size / compressed_size if compressed_size > 0 else 0
 
                 result = {
@@ -312,7 +329,8 @@ def save_results(results):
     existing.extend(results)
     with open(RESULTS_FILE, "w") as f:
         json.dump(existing, f, indent=2)
-    print(f"Saved {len(results)} results to {RESULTS_FILE} (total: {len(existing)})")
+    print(
+        f"Saved {len(results)} results to {RESULTS_FILE} (total: {len(existing)})")
 
 
 def main():
@@ -356,7 +374,7 @@ def main():
         print(f"\nGenerating plots after {gen['name']} phase...")
         try:
             subprocess.run(
-                [PYTHON, "plot_self_compression.py"],
+                [PYTHON, os.path.join(experiment_dir, "plot_self_compression.py")],
                 cwd=PROJECT, env=get_env(), check=True,
             )
         except subprocess.CalledProcessError as e:
