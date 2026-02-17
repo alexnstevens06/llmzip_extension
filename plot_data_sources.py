@@ -298,6 +298,65 @@ def plot_summary_table(df):
     return out
 
 
+# ── Plot 5: Category summary table as image ─────────────────────────────────
+def plot_category_table(df):
+    """Render category (document type) summary table as a styled PNG."""
+    rows = []
+    for cat in CATEGORY_ORDER:
+        cdf = df[df["category"] == cat]
+        if cdf.empty:
+            continue
+        label = CATEGORY_LABELS.get(cat, cat)
+        rows.append((label, f"{cdf['bpc'].mean():.4f}",
+                     f"{cdf['bpc'].min():.4f}", f"{cdf['bpc'].max():.4f}"))
+
+    # Sort by avg BPC ascending
+    rows.sort(key=lambda r: float(r[1]))
+
+    col_labels = ["Document Type", "Avg BPC", "Min BPC", "Max BPC"]
+
+    fig, ax = plt.subplots(figsize=(8, 0.6 * len(rows) + 1.4))
+    ax.axis("off")
+
+    table = ax.table(
+        cellText=rows,
+        colLabels=col_labels,
+        cellLoc="center",
+        loc="center",
+    )
+
+    table.auto_set_font_size(False)
+    table.set_fontsize(11)
+    table.scale(1.0, 1.6)
+
+    # Style header
+    for j in range(len(col_labels)):
+        cell = table[0, j]
+        cell.set_facecolor("#0e7490")
+        cell.set_text_props(color="white", fontweight="bold")
+
+    # Alternate row colours
+    for i in range(1, len(rows) + 1):
+        color = "#ecfeff" if i % 2 == 0 else "white"
+        for j in range(len(col_labels)):
+            table[i, j].set_facecolor(color)
+            table[i, j].set_edgecolor("#e0e0e0")
+
+    # Highlight best (first row)
+    for j in range(len(col_labels)):
+        table[1, j].set_text_props(fontweight="bold")
+
+    ax.set_title("BPC by Document Type – Data Source Benchmarks (window=100)",
+                 fontsize=14, fontweight="bold", pad=16)
+    plt.tight_layout()
+
+    out = os.path.join(OUTPUT_DIR, "data_source_category_summary.png")
+    fig.savefig(out, dpi=200, bbox_inches="tight", facecolor="white")
+    print(f"Saved: {out}")
+    plt.close(fig)
+    return out
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -314,6 +373,7 @@ def main():
     plot_bpc_by_category(df)
     plot_heatmap(df)
     plot_summary_table(df)
+    plot_category_table(df)
 
     # Print summary table
     print(f"\n{'─'*70}")
