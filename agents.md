@@ -1,7 +1,7 @@
 # Project: LLMzip from Scratch
 
 ## Overview
-This project focuses on research and experimentation with Large Language Models (LLMs), specifically exploring arithmetic encoding (compression) and performance benchmarking. It uses the **Qwen2.5-3B** model.
+This project focuses on research and experimentation with Large Language Models (LLMs), specifically exploring arithmetic encoding (compression), generative reconstruction, and performance benchmarking. It uses the **Qwen2.5-3B** model as a primary driver.
 
 ## Environment
 - **OS**: Linux
@@ -9,69 +9,54 @@ This project focuses on research and experimentation with Large Language Models 
 - **Hardware Acceleration**: AMD ROCm is used. Note the environment variable `HSA_OVERRIDE_GFX_VERSION="10.3.0"` is often required for Navi 22 GPUs (RX 6700 XT).
 - **Libraries**: `transformers`, `torch`, `accelerate`.
 
-## Model Information
-- **Model**: Qwen2.5-3B
-- **Location**: `~/.cache/huggingface/hub/models--Qwen--Qwen2.5-3B`
-- **Snapshot Used**: `snapshots/3aab1f1954e9cc14eb9509a215f9e5ca08227a9b`
+## Project Structure
+The project is organized into core components and specific experimental tracks:
 
-## Key Scripts
+### `core/`
+Contains shared logic and utilities.
+- **`AC/arithmeticcoding.py`**: Reference implementation of arithmetic encoding.
+- **`encode_story.py`**: Utility for compressing text files using arithmetic encoding.
 
-### 1. Text Generation
-- **`qwen_generation.py`**: 
-  - Loads the local Qwen model.
-  - Generates text with a restriction of 5 new tokens.
-  - Outputs the top-5 token probabilities for each step.
-  - **Usage**: `python qwen_generation.py`
+### `experiments/`
+Research is divided into two main tracks:
 
-### 2. Benchmarking
-- **`benchmark_tps.py`**: 
-  - Measures the generation speed (Tokens Per Second) on the GPU.
-- **`benchmark_kv.py`**: 
-  - Compares generation performance with vs. without Key-Value (KV) caching.
+#### 1. Natural Language Entropy (`experiments/natural_language_entropy/`)
+Focuses on measuring the intrinsic entropy of text and code using various models.
+- **`run_self_compression.py`**: Orchestrator for the "Self-Affinity" experiment (Does a model compress its own output best?).
+- **`llmzip_qwen.py`**: Implements standard token-by-token arithmetic compression.
+- **`plot_self_compression.py`**: Generates visualizations for the self-compression results.
+- **`run_all_benchmarks.py`**: General purpose benchmarking script.
 
-### 3. Core Logic
-- **`arithmetic_encoding.py`**: 
-  - Contains experimental logic for arithmetic encoding, likely for the "LLMzip" compression aspect.
+#### 2. Generative Reconstruction Compression (`experiments/generative_reconstruction_compression/`)
+Explores "Generative Transmission" where content is generated on the receiver side and the sender transmits the prompt, seed, and diff.
+- **`generative_compression.py`**: Prototype for the Prompt + Seed + Diff workflow.
 
-### 4. Utilities
-- **`test_gpu.py` / `test_gpu_simple.py`**: 
-  - Simple scripts to verify that PyTorch can access the GPU and perform basic tensor operations.
 
-## Self-Compression Experiment (Expanded)
-This experiment tests the **Self-Affinity Hypothesis**: Does a base model compress its own fine-tuned (Instruct) outputs better than other models?
+### `results/`
+Contains output plots and data, mirrored by experiment track.
+- `results/natural_language_entropy/`: Plots for self-compression and entropy benchmarks.
+- `results/generative_reconstruction_compression/`: (Future) Results for GRC experiments.
 
-### Experiment Design
-- **Generators**: 
-    - Llama 3.2-3B-Instruct
-    - Gemma 3-4B-IT
-    - Qwen 2.5-3B-Instruct (Added Feb 2026)
-- **Domains**: 
-    - **Coding**: Binary Search Tree, CSV Stats, LRU Cache, Sieve of Eratosthenes, HTTP Server.
-    - **Natural Language**: Argumentative Essay, Short Story, Educational Explanation (Added Feb 2026).
-- **Compressors (Base Models)**: 
-    - Llama 3.2-3B, Gemma 3-4B, Qwen 2.5-3B, plus smaller variants (1B/1.7B).
+## Key Experiments
 
-### Execution Scripts
-- **`run_self_compression.py`**: Orchestrator script. Downloads models, generates content, compresses files, and plots results.
-    - **Usage**: `.venv/bin/python3 run_self_compression.py`
-    - **Note**: Runs for ~1.5 hours. Best run in `tmux`.
-- **`generate_code.py`**: Generates content using instruct models. Now supports mixed content (Code + NL) and saves as `.txt`.
-- **`plot_self_compression.py`**: Visualizes compression ratios (BPC) and self-affinity deltas.
+### Self-Compression (Natural Language Entropy)
+Tests the **Self-Affinity Hypothesis**: Does a base model compress its own fine-tuned (Instruct) outputs better than other models?
+- **Generators**: Llama 3.2-3B-Instruct, Gemma 3-4B-IT, Qwen 2.5-3B-Instruct.
+- **Compressors**: Corresponding base models + smaller variants.
+- **Status**: Operational. Results are saved in `data/self_compression_results.json`.
 
-### Current Status (Feb 17, 2026)
-- The benchmark is running in a detached `tmux` session named `research`.
-- **Artifacts**: Results accumulate in `self_compression_results.json`. Plots saved in `results/`.
-- **Fixes**: 
-    - Resolved OOM during model download by using `huggingface-cli`.
-    - Fixed file extension logic (`.py.txt` -> `.txt`) for non-code content.
+### Generative Reconstruction (GRC)
+Aims to minimize transmission size by sending `Size(Prompt) + Size(Seed) + Size(Diff)` instead of the raw file.
+- **Concept**: Sender generates a "Candidate" using a specific Prompt and Seed. The Sender computes the basic file with the prompt and seed, adjusts the basic file to be satisfactory, and then computes the diff. The Receiver generates the same Candidate and applies the Diff to recreate the file.
+- **Status**: Prototype phase. Diff encoding is currently estimated.
 
 ## Quick Start
-1. **Activate Environment**: Ensure you are in the project root and the virtual environment is verified/active.
-2. **Run Generation**:
+1. **Activate Environment**: Ensure you are in the project root.
+2. **Run Self-Compression**:
    ```bash
-   python qwen_generation.py
+   .venv/bin/python3 experiments/natural_language_entropy/run_self_compression.py
    ```
-3. **Run Benchmarks**:
+3. **Run GRC Prototype**:
    ```bash
-   python benchmark_tps.py
+   .venv/bin/python3 experiments/generative_reconstruction_compression/generative_compression.py --help
    ```

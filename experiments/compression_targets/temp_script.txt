@@ -1,0 +1,22 @@
+K4 R2[(data] K4 I[ """
+    Perform a binary search on a sorted list.
+    
+    Args:
+        data (list): A sorted list of elements.
+        target: The value to search for.
+        
+    Returns:
+        int: The index of the target if found, otherwise -1.
+    """
+   ] K1 I[, high] K3 R4[,] K1 R2[(data] K4 R1[
+    
+] K7 I[ # Calculate the middle index to avoid potential overflow in some languages, 
+        # though not strictly necessary in Python.
+       ] K10 R1[
+        
+] K1 R3[ current_value = data] K1 R1[]
+        if current_value] K6 R1[ # Found the target!
+] K2 R4[ current_value] K10 I[ # Search the upper half] K11 R1[ # Search the lower half
+            
+] K4 I[ # Target not found
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Binary Search (trivial)",
+    "target_tokens": 189,
+    "target_chars": 831,
+    "original_bits": 6648,
+    "standard_bits": 280,
+    "naive_rat_bits": 888,
+    "naive_mye_bits": 904,
+    "ctx_rat_bits": 712.5486211191372,
+    "ctx_mye_bits": 730.8135705138263,
+    "prompt_bits": 136,
+    "standard_ratio": 23.74,
+    "naive_rat_ratio": 7.49,
+    "ctx_rat_ratio": 9.33
+  },
+  {
+    "name": "Skip List (medium)",
+    "target_tokens": 1109,
+    "target_chars": 4536,
+    "original_bits": 36288,
+    "standard_bits": 1152,
+    "naive_rat_bits": 2536,
+    "naive_mye_bits": 2704,
+    "ctx_rat_bits": 2538.0796220054694,
+    "ctx_mye_bits": 2900.6723135636294,
+    "prompt_bits": 136,
+    "standard_ratio": 31.5,
+    "naive_rat_ratio": 14.31,
+    "ctx_rat_ratio": 14.3
+  },
+  {
+    "name": "N-Body Sim (complex)",
+    "target_tokens": 1374,
+    "target_chars": 5103,
+    "original_bits": 40824,
+    "standard_bits": 1504,
+    "naive_rat_bits": 3488,
+    "naive_mye_bits": 4152,
+    "ctx_rat_bits": 3383.4505570904694,
+    "ctx_mye_bits": 4952.01208610228,
+    "prompt_bits": 152,
+    "standard_ratio": 27.14,
+    "naive_rat_ratio": 11.7,
+    "ctx_rat_ratio": 12.07
+  },
+  {
+    "name": "Inventory System (complex+long)",
+    "target_tokens": 1686,
+    "target_chars": 7683,
+    "original_bits": 61464,
+    "standard_bits": 1944,
+    "naive_rat_bits": 3920,
+    "naive_mye_bits": 4824,
+    "ctx_rat_bits": 3501.7548665141167,
+    "ctx_mye_bits": 5073.975956505053,
+    "prompt_bits": 168,
+    "standard_ratio": 31.62,
+    "naive_rat_ratio": 15.68,
+    "ctx_rat_ratio": 17.55
+  }
+]

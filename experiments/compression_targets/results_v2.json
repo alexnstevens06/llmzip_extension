@@ -1,0 +1,1 @@
+{"original_bits": 6648, "base_llmzip_bits": 280, "naive_ratcliff_bits": 888, "naive_myers_bits": 904, "context_ratcliff_bits": 712.5486211191372, "context_myers_bits": 730.8135705138263, "prompt_bits": 136}

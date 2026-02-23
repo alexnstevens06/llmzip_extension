@@ -1,0 +1,19 @@
+{
+  "generator_model": "moonshotai/kimi-k2.5",
+  "compressor_model": "Qwen/Qwen2.5-0.5B",
+  "prompt": "Write a Python binary search function. The function should take a sorted list and a target value and return the index, or -1 if not found.",
+  "seed": 42,
+  "original_bits": 15800,
+  "original_chars": 1975,
+  "standard_llmzip_bits": 808,
+  "breakdown": {
+    "prompt_bits": 96,
+    "seed_bits": 32,
+    "opcode_bits_myers": 131.43674475769487,
+    "content_bits_myers": 143.7379327078219,
+    "opcode_bits_ratcliff": 103.01343393855645,
+    "content_bits_ratcliff": 140.8340988429399
+  },
+  "grc_myers_bits": 403.17467746551677,
+  "grc_ratcliff_bits": 371.84753278149634
+}

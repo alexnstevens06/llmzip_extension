@@ -1,0 +1,38 @@
+[
+    {
+        "model_path": "/home/alexn/.cache/huggingface/hub/models--Qwen--Qwen2.5-3B/snapshots/3aab1f1954e9cc14eb9509a215f9e5ca08227a9b",
+        "timestamp": "2026-02-10T17:15:47.048772",
+        "original_size_bytes": 1709,
+        "compressed_size_bytes": 769,
+        "compression_ratio": 2.2224,
+        "bits_per_character": 3.5998,
+        "execution_time_seconds": 46.22
+    },
+    {
+        "model_path": "/home/alexn/.cache/huggingface/hub/models--LiquidAI--LFM2.5-1.2B-Base/snapshots/1e601c5c9d33bcc8da794c253243d6b258a4d38b",
+        "timestamp": "2026-02-10T17:16:23.903810",
+        "original_size_bytes": 1709,
+        "compressed_size_bytes": 749,
+        "compression_ratio": 2.2817,
+        "bits_per_character": 3.5061,
+        "execution_time_seconds": 19.4
+    },
+    {
+        "model_path": "/home/alexn/.cache/huggingface/hub/models--google--gemma-3-1b-pt/snapshots/fcf18a2a879aab110ca39f8bffbccd5d49d8eb29",
+        "timestamp": "2026-02-10T17:17:08.730500",
+        "original_size_bytes": 1709,
+        "compressed_size_bytes": 829,
+        "compression_ratio": 2.0615,
+        "bits_per_character": 3.8806,
+        "execution_time_seconds": 23.96
+    },
+    {
+        "model_path": "/home/alexn/.cache/huggingface/hub/models--Qwen--Qwen3-1.7B/snapshots/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+        "timestamp": "2026-02-10T17:17:55.098957",
+        "original_size_bytes": 1709,
+        "compressed_size_bytes": 769,
+        "compression_ratio": 2.2224,
+        "bits_per_character": 3.5998,
+        "execution_time_seconds": 30.86
+    }
+]

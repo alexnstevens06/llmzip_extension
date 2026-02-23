@@ -1,0 +1,27 @@
+def binary_search(data, target):
+    """
+    Perform a binary search on a sorted list.
+    
+    Args:
+        data (list): A sorted list of elements.
+        target: The value to search for.
+        
+    Returns:
+        int: The index of the target if found, otherwise -1.
+    """
+    low, high = 0, len(data) - 1
+    
+    while low <= high:
+        # Calculate the middle index to avoid potential overflow in some languages, 
+        # though not strictly necessary in Python.
+        mid = (low + high) // 2
+        
+        current_value = data[mid]
+        if current_value == target:
+            return mid # Found the target!
+        elif current_value < target:
+            low = mid + 1 # Search the upper half
+        else:
+            high = mid - 1 # Search the lower half
+            
+    return -1 # Target not found
