@@ -5,3 +5,7 @@ __pycache__
 
 encoded_documents
 source_text
+# Build metadata and compressed output files
+*.egg-info/
+*.llmzip
+*.dzip
